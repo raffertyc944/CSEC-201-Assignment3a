@@ -95,7 +95,7 @@ static int dispatch(char *args[], int argc, ExecuteCommandFn execute)
         puts("Incorrect number of arguments.");
         return 1;
     }
-    return execute(cmd->windows_name, (const char * const *)(args + 1), argc - 1);
+    return execute(cmd->windows_name, (const char **)(args + 1), argc - 1);
 }
 
 int main(void)
