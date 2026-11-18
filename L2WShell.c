@@ -84,7 +84,7 @@ static int dispatch(char *args[], int argc, ExecuteCommandFn execute)
         if (!GetConsoleScreenBufferInfo(h, &info)) return 1;
         cells = (DWORD)info.dwSize.X * (DWORD)info.dwSize.Y;
         if (!FillConsoleOutputCharacterA(h, ' ', cells, origin, &written)) return 1;
-        if (!FillConsoleOutputAttribute(h, info.dwAttributes, cells, origin, &written)) return 1;
+        if (!FillConsoleOutputAttribute(h, info.wAttributes, cells, origin, &written)) return 1;
         if (!SetConsoleCursorPosition(h, origin)) return 1;
         return 0;
     }
@@ -113,13 +113,12 @@ int main(void)
         return 1;
     }
     parse = (ParseCommandFn)GetProcAddress(dll, "ParseCmd");
-    execute = (ExecuteCommandFn)(ParseCommandFn)GetProcAddress(dll, (LPCSTR)1);
+    execute = (ExecuteCommandFn)GetProcAddress(dll, "ExecuteCmd");
     if (!parse || !execute) {
         fprintf(stderr, "Missing required DLL export.\n");
         FreeLibrary(dll);
         return 1;
     }
-    FreeLibrary(dll);
     puts("L2WShell - Linux commands on Windows. Type help.");
     for (;;) {
         fputs("l2w> ", stdout);
