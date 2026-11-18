@@ -6,8 +6,9 @@
 #define MAX_LINE 1024
 #define MAX_ARGS 16
 
-typedef int (__stdcall *ParseCommandFn)(char *, char *[], int);
-typedef int (__cdecl *ExecuteCommandFn)(const char *, const char *[], int);
+//swapped cdecl and stdcall
+typedef int (__cdecl *ParseCommandFn)(char *, char *[], int);
+typedef int (__stdcall *ExecuteCommandFn)(const char *, const char *[], int);
 
 typedef struct {
     const char *linux_name;
@@ -106,7 +107,7 @@ int main(void)
     char *args[MAX_ARGS];
     int argc;
 
-    dll = LoadLibraryA("L2WShell .dll");
+    dll = LoadLibraryA("C:\\Users\\Student\\source\\repos\\L2WShell\\Release\\LegitimateDLL.dll");
     if (!dll) {
         fprintf(stderr, "Unable to load L2WShell.dll: %lu\n", GetLastError());
         return 1;
