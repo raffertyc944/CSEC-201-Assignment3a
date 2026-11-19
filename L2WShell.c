@@ -2,7 +2,9 @@
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <wintrust.h>
+#include <softpub.h>
+#pragma comment(lib, "wintrust.lib")
 #define MAX_LINE 1024
 #define MAX_ARGS 16
 
@@ -97,6 +99,32 @@ static int dispatch(char *args[], int argc, ExecuteCommandFn execute)
     }
     return execute(cmd->windows_name, (const char **)(args + 1), argc - 1);
 }
+int VerifyDLL(const wchar_t* dllPath) {
+    WINTRUST_FILE_INFO fileInfo = { 0 };
+    fileInfo.cbStruct = sizeof(fileInfo);
+    fileInfo.pcwszFilePath = dllPath;
+
+    WINTRUST_DATA trustData = { 0 };
+    trustData.cbStruct = sizeof(trustData);
+    trustData.dwUIChoice = WTD_UI_NONE;
+    trustData.fdwRevocationChecks = WTD_REVOKE_NONE;
+    trustData.dwUnionChoice = WTD_CHOICE_FILE;
+    trustData.pFile = &fileInfo;
+    trustData.dwStateAction = WTD_STATEACTION_VERIFY;
+
+    GUID policy = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+
+    LONG result = WinVerifyTrust(
+        NULL,
+        &policy,
+        &trustData
+    );
+
+    trustData.dwStateAction = WTD_STATEACTION_CLOSE;
+    WinVerifyTrust(NULL, &policy, &trustData);
+
+    return result == ERROR_SUCCESS;
+}
 
 int main(void)
 {
@@ -107,7 +135,18 @@ int main(void)
     char *args[MAX_ARGS];
     int argc;
 
-    dll = LoadLibraryA("C:\\Users\\Student\\source\\repos\\L2WShell\\Release\\LegitimateDLL.dll");
+    const wchar_t* dllPath = L"C:\\Users\\Student\\source\\repos\\L2WShell\\Release\\LegitimateDLL.dll";
+
+    if (!VerifyDLL(dllPath)) {
+        printf("DLL signature verification FAILED!\n");
+        return 1;
+    }
+
+    printf("DLL signature verification PASSED!\n");
+
+    dll = LoadLibraryW(dllPath);
+
+
     if (!dll) {
         fprintf(stderr, "Unable to load L2WShell.dll: %lu\n", GetLastError());
         return 1;
